@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام مغسلة السيارات الآمن</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e88e5, #0d47a1);
+            color: white;
+            padding: 20px 0;
+            border-radius: 0 0 20px 20px;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">🔐 تسجيل الدخول</h3>
+                    <p class="text-muted">نظام إدارة مغسلة السيارات</p>
+                    
+                    <form id="loginForm" class="mt-4">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="username" placeholder="اسم المستخدم" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="password" placeholder="كلمة المرور" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">دخول</button>
+                    </form>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            البيانات الافتراضية:<br>
+                            المستخدم: admin | كلمة المرور: 123456
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي (سيظهر بعد التسجيل) -->
+    <div id="appScreen" class="hidden">
+        <div class="header text-center mb-4">
+            <div class="container">
+                <h1>نظام إدارة مغسلة السيارات</h1>
+                <button class="btn btn-light btn-sm mt-2" onclick="logout()">تسجيل الخروج</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#add-customer">إضافة عميل</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#customers">العملاء</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- إضافة عميل -->
+                <div class="tab-pane fade show active" id="add-customer">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">إضافة عميل جديد</h5>
+                            <form id="customerForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">اسم العميل</label>
+                                        <input type="text" class="form-control" id="customerName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">رقم الهاتف</label>
+                                        <input type="tel" class="form-control" id="customerPhone" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">موديل السيارة</label>
+                                        <input type="text" class="form-control" id="carModel" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">رقم اللوحة</label>
+                                        <input type="text" class="form-control" id="carPlate" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">نوع الاشتراك</label>
+                                        <select class="form-select" id="subscriptionType" required>
+                                            <option value="شهري">شهري</option>
+                                            <option value="ربع سنوي">ربع سنوي</option>
+                                            <option value="سنوي">سنوي</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">تاريخ البداية</label>
+                                        <input type="date" class="form-control" id="startDate" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">إضافة العميل</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4 hidden" id="qrCard">
+                        <div class="card-body text-center">
+                            <h5>QR كود العميل</h5>
+                            <div id="qrcode"></div>
+                            <button class="btn btn-outline-primary mt-3" onclick="printQR()">طباعة الكود</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- قائمة العملاء -->
+                <div class="tab-pane fade" id="customers">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">قائمة العملاء</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>الهاتف</th>
+                                            <th>السيارة</th>
+                                            <th>اللوحة</th>
+                                            <th>الاشتراك</th>
+                                            <th>النهاية</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customersTable">
+                                        <!-- سيتم ملؤها بالبيانات -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // بيانات المستخدمين المسموح لهم
+        const users = {
+            "admin": "123456",
+            "موظف1": "111111",
+            "موظف2": "222222"
+        };
+
+        // التحقق من تسجيل الدخول
+        function checkAuth() {
+            const savedUser = localStorage.getItem('carWashUser');
+            const savedTime = localStorage.getItem('carWashLoginTime');
+            
+            if (savedUser && savedTime) {
+                // التحقق من أن الجلسة لم تنتهِ (24 ساعة)
+                const loginTime = parseInt(savedTime);
+                const currentTime = new Date().getTime();
+                const hoursDiff = (currentTime - loginTime) / (1000 * 60 * 60);
+                
+                if (hoursDiff < 24) {
+                    showApp();
+                    return true;
+                } else {
+                    logout();
+                }
+            }
+            return false;
+        }
+
+        // تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username] === password) {
+                // حفظ بيانات الجلسة
+                localStorage.setItem('carWashUser', username);
+                localStorage.setItem('carWashLoginTime', new Date().getTime().toString());
+                
+                showApp();
+                alert('مرحباً ' + username);
+            } else {
+                alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
+            }
+        });
+
+        // إظهار التطبيق
+        function showApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            loadCustomers();
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem('carWashUser');
+            localStorage.removeItem('carWashLoginTime');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // إدارة العملاء
+        let customers = JSON.parse(localStorage.getItem('carWashCustomers')) || [];
+
+        // إضافة عميل جديد
+        document.getElementById('customerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const customer = {
+                id: 'CW' + Date.now(),
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                carModel: document.getElementById('carModel').value,
+                carPlate: document.getElementById('carPlate').value,
+                subscription: document.getElementById('subscriptionType').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: calculateEndDate(),
+                status: 'نشط'
+            };
+            
+            customers.push(customer);
+            localStorage.setItem('carWashCustomers', JSON.stringify(customers));
+            
+            generateQRCode(customer.id);
+            document.getElementById('qrCard').classList.remove('hidden');
+            document.getElementById('customerForm').reset();
+            
+            alert('تم إضافة العميل بنجاح!');
+            loadCustomers();
+        });
+
+        // حساب تاريخ الانتهاء
+        function calculateEndDate() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const subscriptionType = document.getElementById('subscriptionType').value;
+            let endDate = new Date(startDate);
+            
+            switch(subscriptionType) {
+                case 'شهري': endDate.setMonth(endDate.getMonth() + 1); break;
+                case 'ربع سنوي': endDate.setMonth(endDate.getMonth() + 3); break;
+                case 'سنوي': endDate.setFullYear(endDate.getFullYear() + 1); break;
+            }
+            
+            return endDate.toISOString().split('T')[0];
+        }
+
+        // إنشاء QR كود
+        function generateQRCode(customerId) {
+            const qrcodeElement = document.getElementById('qrcode');
+            qrcodeElement.innerHTML = '';
+            
+            QRCode.toCanvas(qrcodeElement, customerId, { width: 200 }, function(error) {
+                if (error) {
+                    qrcodeElement.innerHTML = '<p>كود العميل: ' + customerId + '</p>';
+                }
+            });
+        }
+
+        // تحميل العملاء
+        function loadCustomers() {
+            const table = document.getElementById('customersTable');
+            table.innerHTML = '';
+            
+            customers.forEach(customer => {
+                const status = new Date(customer.endDate) > new Date() ? 'نشط' : 'منتهي';
+                const statusClass = status === 'نشط' ? 'text-success' : 'text-danger';
+                
+                const row = `
+                    <tr>
+                        <td>${customer.name}</td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.carModel}</td>
+                        <td>${customer.carPlate}</td>
+                        <td>${customer.subscription}</td>
+                        <td>${customer.endDate}</td>
+                        <td class="${statusClass}">${status}</td>
+                    </tr>
+                `;
+                table.innerHTML += row;
+            });
+        }
+
+        // طباعة QR كود
+        function printQR() {
+            window.print();
+        }
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // تعيين تاريخ اليوم كافتراضي
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+            
+            // التحقق من المصادقة
+            if (!checkAuth()) {
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
